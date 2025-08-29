@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>URL Shortener</h1>
+
+      <form method="POST" action="/shorten" class="url-form">
+        <div class="input-group">
+          <div class="input-container">
+            <input
+              type="text"
+              name="originalUrl"
+              id="urlInput"
+              placeholder="Enter URL to shorten..."
+              required
+            />
+          </div>
+          <button type="submit">Shorten URL</button>
+        </div>
+      </form>
+
+      <% if (typeof error !== 'undefined') { %>
+      <div class="error">
+        <p><%= error %></p>
+      </div>
+      <% } %> <% if (typeof shortenedUrl !== 'undefined' && typeof originalUrl
+      !== 'undefined') { %>
+      <div class="result">
+        <h3>URL Shortened Successfully!</h3>
+        <div class="url-display">
+          <span class="short-url">
+            <a href="<%= originalUrl %>" target="_blank"><%= shortenedUrl %></a>
+          </span>
+        </div>
+      </div>
+      <% } %> <% if (urls.length > 0) { %>
+      <div class="recent-urls">
+        <h3>Your Recent URLs</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Original URL</th>
+              <th>Short URL</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% urls.forEach(url => { %>
+            <tr>
+              <td class="original-url">
+                <a
+                  href="<%= url.originalUrl %>"
+                  target="_blank"
+                  title="<%= url.originalUrl %>"
+                >
+                  <%= url.originalUrl.length > 50 ? url.originalUrl.substring(0,
+                  50) + '...' : url.originalUrl %>
+                </a>
+              </td>
+              <td class="short-url">
+                <a
+                  href="<%= url.originalUrl %>"
+                  target="_blank"
+                  title="Goes directly to: <%= url.originalUrl %>"
+                >
+                  <%= url.shortUrl %>
+                </a>
+              </td>
+              <td><%= new Date(url.createdAt).toLocaleDateString() %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+
+    <script>
+      function copyUrl(url) {
+        navigator.clipboard
+          .writeText(url)
+          .then(() => {
+            alert("URL copied to clipboard!");
+          })
+          .catch((err) => {
+            const textArea = document.createElement("textarea");
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            alert("URL copied to clipboard!");
+          });
+      }
+
+      // URL Preview functionality
+      const urlInput = document.getElementById("urlInput");
+      const urlPreview = document.getElementById("urlPreview");
+      const previewUrl = document.getElementById("previewUrl");
+
+      function formatUrl(input) {
+        let url = input.trim();
+        if (!url) return "";
+
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          return url;
+        }
+
+        if (url.startsWith("www.")) {
+          return "https://" + url;
+        }
+
+        if (url.includes(".") && !url.startsWith("//")) {
+          return "https://" + url;
+        }
+
+        return url;
+      }
+
+      urlInput.addEventListener("input", function () {
+        const value = this.value;
+        if (value.trim()) {
+          const formatted = formatUrl(value);
+          if (formatted && formatted !== value) {
+            previewUrl.textContent = formatted;
+            urlPreview.style.display = "block";
+          } else {
+            urlPreview.style.display = "none";
+          }
+        } else {
+          urlPreview.style.display = "none";
+        }
+      });
+    </script>
+  </body>
+</html>
